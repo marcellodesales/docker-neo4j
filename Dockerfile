@@ -1,9 +1,9 @@
-ARG from_tag=3.5.0
+ARG from_tag=3.4.12
 FROM neo4j:$from_tag
 
 COPY ./docker-entrypoint.sh /
-COPY ./files/graph-algorithms-algo-3.5.0.1.jar \
-     ./files/apoc-3.5.0.2-all.jar \
+COPY ./files/graph-algorithms-algo-3.4.12.6.jar \
+     ./files/apoc-3.4.0.4-all.jar \
      /var/lib/neo4j/plugins/
 
 RUN chmod 755 /docker-entrypoint.sh && \

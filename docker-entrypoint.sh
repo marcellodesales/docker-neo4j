@@ -1,5 +1,7 @@
 #!/bin/bash -eu
+
 cmd="$1"
+
 # If we're running as root, then run as the neo4j user. Otherwise
 # docker is running with --user and we simply use that user.  Note
 # that su-exec, despite its name, does not replicate the functionality
@@ -16,6 +18,7 @@ fi
 readonly userid
 readonly groupid
 readonly exec_cmd
+
 # Need to chown the home directory - but a user might have mounted a
 # volume here (notably a conf volume). So take care not to chown
 # volumes (stuff not owned by neo4j)
@@ -24,6 +27,7 @@ if [[ "$(id -u)" = "0" ]]; then
   chown "${userid}":"${groupid}" /var/lib/neo4j
   chmod 700 /var/lib/neo4j
 fi
+
 while IFS= read -r -d '' dir
 do
   if [[ "$(id -u)" = "0" ]] && [[ "$(stat -c %U "${dir}")" = "neo4j" ]]; then
@@ -32,7 +36,9 @@ do
     chmod -R 700 "${dir}"
   fi
 done <   <(find /var/lib/neo4j -type d -mindepth 1 -maxdepth 1 -print0)
+
 # Data dir is chowned later
+
 if [[ "${cmd}" != *"neo4j"* ]]; then
   if [ "${cmd}" == "dump-config" ]; then
     if [ -d /conf ]; then
@@ -49,20 +55,28 @@ else
     if [ "${NEO4J_ACCEPT_LICENSE_AGREEMENT:=no}" != "yes" ]; then
       echo >&2 "
 In order to use Neo4j Enterprise Edition you must accept the license agreement.
+
 (c) Network Engine for Objects in Lund AB.  2017.  All Rights Reserved.
 Use of this Software without a proper commercial license with Neo4j,
 Inc. or its affiliates is prohibited.
+
 Email inquiries can be directed to: licensing@neo4j.com
+
 More information is also available at: https://neo4j.com/licensing/
+
+
 To accept the license agreement set the environment variable
 NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
+
 To do this you can use the following docker argument:
+
         --env=NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
 "
       exit 1
     fi
   fi
 fi
+
 # Env variable naming convention:
 # - prefix NEO4J_
 # - double underscore char '__' instead of single underscore '_' char in the setting name
@@ -70,6 +84,7 @@ fi
 # Example:
 # NEO4J_dbms_tx__log_rotation_retention__policy env variable to set
 #       dbms.tx_log.rotation.retention_policy setting
+
 # Backward compatibility - map old hardcoded env variables into new naming convention (if they aren't set already)
 # Set some to default values if unset
 : ${NEO4J_dbms_tx__log_rotation_retention__policy:=${NEO4J_dbms_txLog_rotation_retentionPolicy:-"100M size"}}
@@ -89,6 +104,7 @@ fi
 : ${NEO4J_causal__clustering_transaction__advertised__address:=${NEO4J_causalClustering_transactionAdvertisedAddress:-"$(hostname):6000"}}
 : ${NEO4J_causal__clustering_raft__listen__address:=${NEO4J_causalClustering_raftListenAddress:-"0.0.0.0:7000"}}
 : ${NEO4J_causal__clustering_raft__advertised__address:=${NEO4J_causalClustering_raftAdvertisedAddress:-"$(hostname):7000"}}
+
 # unset old hardcoded unsupported env variables
 unset NEO4J_dbms_txLog_rotation_retentionPolicy NEO4J_UDC_SOURCE \
     NEO4J_dbms_memory_heap_maxSize NEO4J_dbms_memory_heap_maxSize \
@@ -102,6 +118,7 @@ unset NEO4J_dbms_txLog_rotation_retentionPolicy NEO4J_UDC_SOURCE \
     NEO4J_causalClustering_transactionAdvertisedAddress \
     NEO4J_causalClustering_raftListenAddress \
     NEO4J_causalClustering_raftAdvertisedAddress
+
 # Custom settings for dockerized neo4j
 : ${NEO4J_dbms_tx__log_rotation_retention__policy:=100M size}
 : ${NEO4J_dbms_memory_pagecache_size:=512M}
@@ -120,24 +137,31 @@ unset NEO4J_dbms_txLog_rotation_retentionPolicy NEO4J_UDC_SOURCE \
 : ${NEO4J_causal__clustering_transaction__advertised__address:=$(hostname):6000}
 : ${NEO4J_causal__clustering_raft__listen__address:=0.0.0.0:7000}
 : ${NEO4J_causal__clustering_raft__advertised__address:=$(hostname):7000}
+
 if [ -d /conf ]; then
     find /conf -type f -exec cp {} conf \;
 fi
+
 if [ -d /ssl ]; then
     NEO4J_dbms_directories_certificates="/ssl"
 fi
+
 if [ -d /plugins ]; then
     NEO4J_dbms_directories_plugins="/plugins"
 fi
+
 if [ -d /logs ]; then
     NEO4J_dbms_directories_logs="/logs"
 fi
+
 if [ -d /import ]; then
     NEO4J_dbms_directories_import="/import"
 fi
+
 if [ -d /metrics ]; then
     NEO4J_dbms_directories_metrics="/metrics"
 fi
+
 # set the neo4j initial password only if you run the database server
 if [ "${cmd}" == "neo4j" ]; then
     if [ "${NEO4J_AUTH:-}" == "none" ]; then
@@ -155,6 +179,7 @@ if [ "${cmd}" == "neo4j" ]; then
         exit 1
     fi
 fi
+
 # list env variables with prefix NEO4J_ and create settings from them
 unset NEO4J_AUTH NEO4J_SHA256 NEO4J_TARBALL
 for i in $( set | grep ^NEO4J_ | awk -F'=' '{print $1}' | sort -rn ); do
