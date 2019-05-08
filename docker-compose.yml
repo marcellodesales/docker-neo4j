@@ -7,6 +7,6 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        from_tag: ${IMAGE_TAG:-3.4.12}
-    image: informaticsmatters/neo4j:3.4.12
+        from_tag: ${FROM_TAG:-3.4.12}
+    image: informaticsmatters/neo4j:3.4
     container_name: neo4j
