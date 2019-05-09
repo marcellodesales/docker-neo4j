@@ -1,5 +1,4 @@
-ARG from_tag=3.4.12
-FROM neo4j:$from_tag
+FROM neo4j:3.4.12
 
 COPY ./docker-entrypoint.sh /
 COPY ./files/*.jar /var/lib/neo4j/plugins/
